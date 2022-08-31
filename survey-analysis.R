@@ -87,29 +87,40 @@ data_aspects <- data_raw %>%
   "Not helpful" = "NH",
   "I didn't even know that the website had this information!" = "IDK",
   "I am not interested in this information" = "NI"
+  )),
+  labels = rev(c(
+    "Helpful and enough", 
+    "Helpful, but not enough",
+    "Not helpful",
+    "I didn't even know that the website had this information!",
+    "I am not interested in this information"
   ))))
 
-ggplot(data_aspects) + 
-  geom_col(aes(y = aspect, x = n, fill = value), width = .7) +
+order <- data_aspects %>%
+  spread(key = value, value = n) %>%
+  mutate(helpful = `Helpful, but not enough` + `Helpful and enough`) %>%
+  select(aspect, helpful) %>%
+  arrange(helpful)
+
+data_aspects2 <- data_aspects %>% left_join(order)
+
+ggplot(data_aspects2) + 
+  geom_col(aes(y = reorder(aspect, helpful), x = n, fill = value), width = .7) +
   scale_fill_manual(
     values = c(
-      "H/E" = "steelblue", 
-      "H/NE" = "dodgerblue",
-      "NH" = "coral",
-      "IDK" = "gold",
-      "NI" = "gray"
-    ),
-    labels = c(
-      "Helpful and enough" = "H/E", 
-      "Helpful, but not enough" = "H/NE",
-      "Not helpful" = "NH",
-      "I didn't even know that the website had this information!" = "IDK",
-      "I am not interested in this information" = "NI"
+      "Helpful and enough" = "steelblue",
+      "Helpful, but not enough" = "dodgerblue",
+      "Not helpful" = "coral",
+      "I didn't even know that the website had this information!" = "gold",
+      "I am not interested in this information" = "gray"
     )
   ) +
+  labs(fill = NULL, x = NULL, y = NULL) +
   theme_minimal() +
   theme(text = element_text(family = 'Fira Code'),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        legend.position = 'none'
+        legend.position = 'bottom',
+        legend.text = element_text(size = 8),
+        legend.direction = 'vertical'
   )
